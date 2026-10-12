@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Silicon Photonics Fundamentals 03 — Lasers, Packaging and the Energy-per-Bit Budget</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&family=Geist+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #1c1815;
+            --bg-card: #231e1a;
+            --bg-code: #2b2520;
+            --text-primary: #efe8dc;
+            --text-secondary: #a2978b;
+            --accent: #aabd59;
+            --accent-dim: #aabd5944;
+            --accent-glow: #aabd5933;
+            --border: #3a322b;
+            --font-display: 'Bricolage Grotesque', sans-serif;
+            --font-mono: 'Geist Mono', 'Geist Mono', monospace;
+            --font-body: 'Instrument Sans', sans-serif;
+            --max-width: 900px;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 17px;
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        /* ── Header ── */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .hero > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .series-label {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        .hero h1 .accent {
+            color: var(--accent);
+        }
+
+        .hero .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin-bottom: 2rem;
+        }
+
+        /* ── Tag Pills ── */
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .tag {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            background: var(--accent-dim);
+            white-space: nowrap;
+        }
+
+        /* ── Pipeline Flow Bar ── */
+        .pipeline {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            margin-bottom: 1rem;
+            max-width: var(--max-width);
+        }
+
+        .pipeline-step {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            padding: 0.3rem 0.7rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .pipeline-arrow {
+            color: var(--accent);
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        /* ── Slides ── */
+        .slide {
+            min-height: 100vh;
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 4rem 1.5rem;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .slide-number {
+            font-family: var(--font-display);
+            font-size: 5rem;
+            font-weight: 700;
+            color: var(--accent-dim);
+            position: absolute;
+            top: 2rem;
+            right: 1.5rem;
+            line-height: 1;
+            user-select: none;
+        }
+
+        .slide h2 {
+            font-family: var(--font-display);
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            line-height: 1.25;
+        }
+
+        .slide h3 {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .slide p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .slide p strong {
+            color: var(--text-primary);
+        }
+
+        .slide ul, .slide ol {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        .slide li {
+            margin-bottom: 0.4rem;
+        }
+
+        .slide li strong {
+            color: var(--text-primary);
+        }
+
+        /* ── Code Blocks ── */
+        .code-block {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin: 1.25rem 0;
+            overflow: hidden;
+        }
+
+        .code-header {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent);
+            background: rgba(170,189,89,0.08);
+            padding: 0.4rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-block pre {
+            margin: 0;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #dad1c5;
+        }
+
+        /* Syntax highlighting (manual) */
+        .kw { color: #de805a; }
+        .fn { color: #d7bbdf; }
+        .str { color: #bcdbd4; }
+        .cm { color: #a2978b; font-style: italic; }
+        .num { color: #97cdc6; }
+        .type { color: #e3b174; }
+        .dir { color: #de805a; }
+        .mac { color: #e3b174; }
+
+        /* ── Tables ── */
+        .table-wrap {
+            overflow-x: auto;
+            margin: 1.25rem 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: var(--bg-code);
+            color: var(--accent);
+            font-weight: 600;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            font-family: var(--font-display);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 0.6rem 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:nth-child(even) td {
+            background: rgba(35,30,26,0.5);
+        }
+
+        /* ── Diagrams ── */
+        .diagram-flow {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .diagram-box {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .diagram-box.accent {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(170,189,89,0.08);
+        }
+
+        .diagram-box.dim {
+            color: var(--text-secondary);
+            border-color: var(--border);
+        }
+
+        .diagram-arrow {
+            color: var(--accent);
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        /* Vertical flow diagrams */
+        .diagram-vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .diagram-vertical .diagram-arrow {
+            font-size: 1.1rem;
+        }
+
+        /* Nested hierarchy diagram */
+        .hierarchy {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .hierarchy-level {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .hierarchy-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .hierarchy-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+
+        .hierarchy-item {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .hierarchy-item.accent {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(170,189,89,0.08);
+        }
+
+        /* Grid diagram */
+        .diagram-grid {
+            display: grid;
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .diagram-grid.cols-2 {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .diagram-grid.cols-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .diagram-panel {
+            padding: 1rem;
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+        }
+
+        .diagram-panel.accent-border {
+            border-left: 3px solid var(--accent);
+        }
+
+        .diagram-panel h4 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .diagram-panel p, .diagram-panel ul {
+            font-size: 0.85rem;
+        }
+
+        /* ── Callout Boxes ── */
+        .callout {
+            background: var(--bg-card);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 8px 8px 0;
+            padding: 1rem 1.25rem;
+            margin: 1.25rem 0;
+        }
+
+        .callout p {
+            margin-bottom: 0;
+        }
+
+        .callout .callout-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.3rem;
+        }
+
+        /* ── Tier Visual ── */
+        .tier-visual {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .tier-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .tier-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            min-width: 90px;
+            text-align: right;
+        }
+
+        .tier-fill {
+            height: 32px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding: 0 0.75rem;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            white-space: nowrap;
+            transition: width 0.6s ease;
+        }
+
+        .tier-cost {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            min-width: 70px;
+        }
+
+        /* ── Contents list ── */
+        .contents-list {
+            list-style: none;
+            padding-left: 0;
+            counter-reset: contents;
+        }
+
+        .contents-list li {
+            counter-increment: contents;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .contents-list li:last-child {
+            border-bottom: none;
+        }
+
+        .contents-list li::before {
+            content: counter(contents, decimal-leading-zero);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            min-width: 2rem;
+        }
+
+        .contents-list a {
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .contents-list a:hover {
+            color: var(--accent);
+        }
+
+        /* ── Footer ── */
+        .footer {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+            max-width: var(--max-width);
+            margin: 0 auto;
+        }
+
+        .footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            .slide {
+                padding: 3rem 1rem;
+                min-height: auto;
+            }
+
+            .slide-number {
+                font-size: 3rem;
+                top: 1.5rem;
+                right: 1rem;
+            }
+
+            .slide h2 {
+                font-size: 1.5rem;
+            }
+
+            .diagram-grid.cols-2,
+            .diagram-grid.cols-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .pipeline {
+                gap: 0.15rem;
+            }
+
+            .pipeline-step {
+                font-size: 0.6rem;
+                padding: 0.2rem 0.4rem;
+            }
+
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            table {
+                font-size: 0.78rem;
+            }
+
+            .tier-label {
+                min-width: 60px;
+                font-size: 0.65rem;
+            }
+
+            .tier-fill {
+                font-size: 0.6rem;
+                height: 26px;
+            }
+        }
+
+        /* ── Interactive controls (added for Local LLM series) ── */
+        .control-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin: 1.25rem 0;
+        }
+        .control-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        .control-row label {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            min-width: 180px;
+        }
+        .control-row input[type="range"] {
+            flex: 1;
+            min-width: 160px;
+            accent-color: var(--accent);
+        }
+        .control-row input[type="number"],
+        .control-row select {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 4px;
+            padding: 0.3rem 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+        }
+        .control-row .val {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--accent);
+            min-width: 80px;
+            text-align: right;
+        }
+        .btn {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            padding: 0.4rem 0.9rem;
+            background: var(--accent-dim);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .btn:hover { background: rgba(170,189,89,0.2); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn.secondary {
+            background: var(--bg-code);
+            color: var(--text-secondary);
+            border-color: var(--border);
+        }
+        .result-box {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 4px;
+            padding: 0.75rem 1rem;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            margin-top: 0.75rem;
+        }
+        .result-box .line-label { color: var(--text-secondary); }
+        .result-box .line-val   { color: var(--accent); font-weight: 600; }
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+        .metric {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.6rem 0.8rem;
+            text-align: center;
+        }
+        .metric .metric-label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .metric .metric-value {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-top: 0.2rem;
+        }
+
+        /* Canvas / SVG containers */
+        .canvas-wrap {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1.25rem 0;
+            overflow-x: auto;
+        }
+        .canvas-wrap canvas,
+        .canvas-wrap svg {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+        }
+
+        /* Small inline badge */
+        .badge {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            padding: 0.1rem 0.45rem;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            vertical-align: middle;
+            margin-left: 0.3rem;
+        }
+        .badge.ok    { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+        .badge.warn  { border-color: #e3b174; color: #e3b174; background: rgba(227,177,116,0.08); }
+        .badge.bad   { border-color: #de805a; color: #de805a; background: rgba(222,128,90,0.08); }
+
+
+        /* ── LLM Inference Simulators additions ── */
+        .canvas-wrap canvas { image-rendering: auto; display: block; width: 100%; height: auto; }
+        .canvas-wrap svg { max-width: 100%; height: auto; }
+        .ladder { display: grid; gap: 0.4rem; margin: 1.25rem 0; }
+        .ladder-row {
+            display: grid; grid-template-columns: 11rem 1fr 7.5rem; gap: 0.75rem; align-items: center;
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px;
+            padding: 0.55rem 0.85rem; font-size: 0.88rem;
+        }
+        .ladder-row .rung { font-family: var(--font-display); font-weight: 600; color: var(--accent); }
+        .ladder-row .speed { font-family: var(--font-mono); font-size: 0.78rem; color: var(--text-secondary); text-align: right; }
+        .res-list { list-style: none; padding: 0; margin: 0.75rem 0; }
+        .res-list li { padding: 0.6rem 0; border-bottom: 1px solid var(--border); font-size: 0.92rem; }
+        .res-list li:last-child { border-bottom: none; }
+        .res-list .what { color: var(--text-secondary); display: block; font-size: 0.86rem; margin-top: 0.15rem; }
+        .res-list a { color: var(--accent); text-decoration: none; }
+        .res-list a:hover { text-decoration: underline; }
+        .qa { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; margin: 0.6rem 0; padding: 0.2rem 1rem; }
+        .qa summary { cursor: pointer; padding: 0.6rem 0; font-weight: 600; }
+        .qa p, .qa ul { margin-bottom: 0.75rem; font-size: 0.92rem; }
+        .sim-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0.4rem 1.25rem; }
+        .chart-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+        .chart-title { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.3rem; }
+        .slide a { color: var(--accent); }
+        @media (max-width: 640px) {
+            .ladder-row { grid-template-columns: 1fr; gap: 0.2rem; }
+            .ladder-row .speed { text-align: left; }
+        }
+        .concepts { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 6px; padding: 0.75rem 1rem; margin-top: 1.25rem; font-size: 0.88rem; }
+        .concepts p { margin: 0 0 0.4rem; color: var(--text-secondary); }
+        .concepts .chips { display: flex; flex-wrap: wrap; gap: 0.35rem 0.5rem; }
+        .concepts .chips a { border: 1px solid var(--border); border-radius: 999px; padding: 0.1rem 0.6rem; text-decoration: none; font-size: 0.82rem; }
+        .concepts .chips a:hover { border-color: var(--accent); }
+        .hero { overflow: hidden; }   /* the 600px glow must not widen the page on phones */
+        .chart-pair > *, .diagram-grid > *, .sim-grid > * { min-width: 0; }   /* let wide code scroll inside its column */
+        .slide p code, .slide li code, .slide td code { overflow-wrap: anywhere; }
+        @media (max-width: 640px) { .diagram-box { white-space: normal; max-width: 100%; } }   /* long boxes must wrap on phones */
+        /* FOptInf: keep long titles clear of the slide number on phones */
+        @media (max-width: 640px) { .slide h2 { padding-right: 3.6rem; } }
+        .sim-grid select, .sim-grid input[type="range"] { max-width: 100%; min-width: 0; }   /* long option labels must not spill into the next column */
+    </style>
+</head>
+<body>
+
+<header class="hero">
+    <div class="series-label">Silicon Photonics Fundamentals &mdash; Presentation 03</div>
+    <h1><span class="accent">Lasers</span>, Packaging and the Energy-per-Bit Budget</h1>
+    <p class="subtitle">Why silicon borrows its laser and the four ways to bring one; external laser modules, wall-plug efficiency and comb sources; fibre attach and packaging; putting electronics next to photonics; and the link budget from laser to detector, priced in picojoules per bit, with what published links actually report.</p>
+
+    <div class="tags">
+        <span class="tag">Laser integration</span>
+        <span class="tag">ELSFP</span>
+        <span class="tag">Wall-plug efficiency</span>
+        <span class="tag">Packaging</span>
+        <span class="tag">Link budget</span>
+        <span class="tag">pJ/bit</span>
+    </div>
+
+    <div class="pipeline">
+        <span class="pipeline-step">Wall plug</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Laser</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Losses</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">Receiver sensitivity</span>
+        <span class="pipeline-arrow">&rarr;</span>
+        <span class="pipeline-step">pJ/bit</span>
+    </div>
+</header>
+
+<section class="slide" id="slide-00">
+    <div class="slide-number">00</div>
+    <h2>Topics We'll Cover</h2>
+    <ul class="contents-list">
+        <li><a href="#slide-01">Why Silicon Needs Someone Else's Laser</a></li>
+        <li><a href="#slide-02">Four Ways to Bring the Laser</a></li>
+        <li><a href="#slide-03">External Lasers and the ELSFP</a></li>
+        <li><a href="#slide-04">Wall-Plug Efficiency</a></li>
+        <li><a href="#slide-05">Multi-Wavelength Sources</a></li>
+        <li><a href="#slide-06">Fibre Attach and Packaging</a></li>
+        <li><a href="#slide-07">Putting Electronics Next to Photonics</a></li>
+        <li><a href="#slide-08">The Optical Link Budget</a></li>
+        <li><a href="#slide-09">Interactive: Link Budget and Energy per Bit</a></li>
+        <li><a href="#slide-10">What Published Links Report</a></li>
+        <li><a href="#slide-11">Thermal Tuning in the Budget</a></li>
+        <li><a href="#slide-12">How Bandwidth Scales</a></li>
+        <li><a href="#slide-13">What to Take Away</a></li>
+    </ul>
+    <div class="concepts">
+        <p><strong>Concepts used here, and where they are explained.</strong> Each links to a glossary entry: this <a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#glossary">series glossary</a>, or the glossaries of Fourier Optics for Inference, Compute in Transit, LLM Inference Simulators and FHE Accelerator Simulators for concepts those series already explain.</p>
+        <div class="chips"><a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#g-sip" title="Optical circuits made with CMOS wafers, lithography and etch: silicon waveguides (transparent at 1310 and 1550 nm), germanium detectors, modulators and heaters on one chip. Silicon does not emit light efficiently, so the laser usually comes from another material.">Silicon photonics</a><a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#g-indirect" title="In silicon the lowest conduction-band state and the highest valence-band state are at different crystal momenta, so an electron and hole can only recombine radiatively with a phonon&#x27;s help. Radiative recombination is slow and efficient lasing is out of reach; III–V materials have direct gaps.">Indirect bandgap</a><a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#g-laserint" title="Four ways to bring the laser: an external source fibred in; a packaged laser chip flip-chipped or attached; III–V bonded onto silicon and processed (heterogeneous); or III–V grown directly on silicon (monolithic). They trade coupling loss, thermal path, replaceability and process maturity.">Laser integration options</a><a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#g-elsfp" title="Keeping the laser off the hot photonic die, in a front-panel module that feeds light by fibre: replaceable, cooler, and shared across many channels. OIF&#x27;s External Laser Small Form Factor Pluggable (ELSFP) implementation agreement standardises such a module for co-packaged optics.">External laser source and ELSFP</a><a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#g-wpe" title="Optical power out divided by electrical power in. A III–V-on-silicon research DFB laser measured up to 13%; a comb-driven link analysis assumes 35% for its pump laser and 14.35% overall; vendors claim higher for high-power sources. Every dB of optical loss in a link is paid at the wall divided by this number.">Wall-plug efficiency</a><a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#g-comb" title="One source for many WDM channels: a laser array, a mode-locked quantum-dot comb laser, or a Kerr microcomb. They save lasers but split power between lines, so per-line power and line-to-line flatness enter the budget.">Multi-wavelength sources and combs</a><a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#g-packaging" title="Aligning fibres to couplers to a fraction of a micrometre and keeping them there: active alignment, V-groove fibre arrays, and the thermal and mechanical design around them. Packaging is far more expensive than electronic packaging and is often called the bottleneck.">Fibre attach and photonic packaging</a><a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#g-grating" title="A grating etched into the waveguide that diffracts light up to a fibre held above the wafer. It allows wafer-level testing and placement anywhere on the die, but is narrowband and polarisation-dependent; the best research result is −0.58 dB with a bottom mirror.">Grating coupler</a><a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#g-edge" title="A silicon taper narrowed until the mode spreads into a larger cladding guide that matches a fibre at the polished chip facet. Broadband and low-loss (0.36–0.66 dB per connection reported) but needs facet preparation and edge access.">Edge coupler (inverse taper)</a><a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#g-eic" title="Where the drivers and receivers sit: on the same die (monolithic, in a CMOS SOI process), on a separate electronic chip bonded face-to-face (3-D), or beside it on a substrate. Shorter connections cut parasitic capacitance and so energy per bit.">Electronic&ndash;photonic integration</a><a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#g-linkbudget" title="The bookkeeping from laser to detector: laser power minus coupling, modulator, multiplexer, fibre and connector losses and penalties must exceed the receiver&#x27;s sensitivity plus a margin. The required laser power follows from the losses, and the electrical power from the wall-plug efficiency.">Optical link budget</a><a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#g-er" title="Extinction ratio: the power ratio between the high and low levels. Optical modulation amplitude (OMA): their difference, the quantity a receiver&#x27;s decision actually uses. A modulator trades insertion loss against extinction ratio by where it is biased.">Extinction ratio and OMA</a><a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#g-tia" title="The TIA turns photocurrent into a voltage; its input noise and the detector&#x27;s capacitance set the sensitivity: the smallest optical power (or OMA) that meets the target bit error ratio. The sensitivity is where a link budget ends.">Transimpedance amplifier and receiver sensitivity</a><a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#g-tuning" title="Heaters next to rings and interferometers to correct fabrication offsets and follow temperature, held by a control loop that monitors a photodiode. Reported heater efficiencies are of order 12–25 mW per π phase shift; across many rings this static power is a large share of a link&#x27;s energy.">Thermal tuning and wavelength locking</a><a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#g-pjbit" title="Total link power divided by data rate, in pJ/bit or fJ/bit: laser (via wall-plug efficiency), modulator driver, receiver, serialisers and clocking, thermal tuning, and any DSP. Published silicon links span from about 120 fJ/bit to a few pJ/bit; what is included matters as much as the number.">Energy per bit</a><a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#g-wdm" title="Several channels on one fibre, each on its own wavelength, combined by a multiplexer and separated by a demultiplexer. It multiplies bandwidth per fibre without faster electronics.">Wavelength-division multiplexing (WDM)</a><a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#g-scaling" title="A link&#x27;s bandwidth is fibres × wavelengths per fibre × bits per symbol × symbol rate. Each axis costs something different: fibres cost packaging, wavelengths cost lasers and filters, bits per symbol cost sensitivity, and baud costs electronics.">Bandwidth scaling: lanes, wavelengths and symbol rate</a><a href="https://brendanjameslynskey.github.io/LLM_Hub_Fourier_Optics_Inference/#g-photoniclink" title="Optical links (co-packaged optics, optical I/O chiplets) that move bytes, such as the KV cache, between chips. They are photonics but not Fourier optics: they compute nothing.">Photonic interconnect</a><a href="https://brendanjameslynskey.github.io/LLM_Hub_Compute_in_Transit/#g-module" title="A QSFP56 pluggable with an integrated optical Fourier transform device, reported to run FFT, NTT, MAC, and modular and floating-point arithmetic on link traffic at “tens of GFLOPs” (the authors&#x27; claim, evaluated on CKKS bootstrapping; arXiv:2608.21536).">Photonic link module</a><a href="https://brendanjameslynskey.github.io/LLM_Hub_Compute_in_Transit/#g-pjbit" title="Energy to move one bit over a link. The module’s developer estimates 2.76 pJ/bit for its 45 nm silicon photonics, excluding the laser; the simulator&#x27;s whole-path link presets (3 to 15 pJ/bit) are illustrative and not directly comparable.">Link energy per bit</a><a href="https://brendanjameslynskey.github.io/LLM_Hub_Inference_Simulators/#g-photonicpower" title="Optical operations are cheap, but lasers and thermal tuning burn static power, and every DAC/ADC conversion costs energy that grows with resolution. Gains need high reuse per conversion and a busy core.">Power in photonic compute</a><a href="https://brendanjameslynskey.github.io/FHE_Hub_Accelerator_Simulators/#g-walden" title="Converter energy per sample ≈ FoM × 2ENOB, so every extra bit of precision doubles the energy of each DAC or ADC conversion.">Walden figure of merit</a></div>
+    </div>
+</section>
+
+<section class="slide" id="slide-01">
+    <div class="slide-number">01</div>
+    <h2>Why Silicon Needs Someone Else's Laser</h2>
+    <p>Silicon has an <strong>indirect bandgap</strong>: the lowest state of its conduction band and the highest state of its valence band sit at different crystal momenta. An electron and a hole can only recombine and emit a photon with the help of a phonon to carry the momentum difference, so radiative recombination is slow and loses out to non-radiative paths. Silicon makes poor light emitters and no practical electrically pumped laser. III&ndash;V semiconductors (InP, GaAs and their alloys) have direct gaps and make the lasers of every optical link.</p>
+    <div class="diagram-grid cols-2">
+        <div class="diagram-panel accent-border">
+            <h4>The consequence</h4>
+            <ul>
+                <li>A silicon photonic chip is a modulator-and-detector chip: the light comes from a III&ndash;V device, attached, bonded, grown or fibred in (<a href="#slide-02">slide 02</a>).</li>
+                <li>The laser is often the least reliable and most temperature-sensitive part of the link, which pushes it away from hot electronics (<a href="#slide-03">slide 03</a>).</li>
+            </ul>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>The opportunity</h4>
+            <ul>
+                <li>Keeping the laser separate lets one source feed many modulators, or many wavelengths (<a href="#slide-05">slide 05</a>).</li>
+                <li>Every dB lost between laser and detector is paid in laser power at the wall, divided by the laser's efficiency: the thread through the rest of this deck.</li>
+            </ul>
+        </div>
+    </div>
+    <p style="font-size:0.85rem;">Reviews: Liang and Bowers, &ldquo;Recent progress in lasers on silicon&rdquo; (<a href="https://doi.org/10.1038/nphoton.2010.167">Nature Photon. 4, 511, 2010</a>); Komljenovic et al., &ldquo;Heterogeneous silicon photonic integrated circuits&rdquo; (J. Lightwave Technol. 34(1), 20, 2016).</p>
+</section>
+
+<section class="slide" id="slide-02">
+    <div class="slide-number">02</div>
+    <h2>Four Ways to Bring the Laser</h2>
+    <div class="table-wrap">
+    <table>
+        <tr><th>Approach</th><th>How</th><th>Strengths</th><th>Costs</th><th>Example</th></tr>
+        <tr><td>External source</td><td>A packaged laser elsewhere, fibred to the chip's input couplers</td><td>Replaceable, cool, mature lasers; one source can feed many channels</td><td>An extra fibre coupling (loss) and a polarisation-maintaining path</td><td>OIF ELSFP (<a href="#slide-03">slide 03</a>)</td></tr>
+        <tr><td>Attached die</td><td>A finished III&ndash;V laser chip flip-chipped, butted or micro-transfer-printed onto the silicon chip</td><td>Known-good lasers, tested before attachment</td><td>Sub-micrometre alignment per laser; heat goes into the photonic chip</td><td>Micro-transfer printing of III&ndash;V devices onto silicon PICs, reviewed by Zhang et al. (<a href="https://doi.org/10.1063/1.5120004">APL Photonics 4, 110803, 2019</a>)</td></tr>
+        <tr><td>Heterogeneous</td><td>Unpatterned III&ndash;V bonded onto patterned silicon, then processed; light couples evanescently into the silicon guide</td><td>Lithographic alignment; many lasers per wafer</td><td>III&ndash;V processing in a silicon line</td><td>Fang et al.'s hybrid AlGaInAs&ndash;silicon evanescent laser (<a href="https://doi.org/10.1364/OE.14.009203">Opt. Express 14, 9203, 2006</a>): continuous-wave at 1577 nm, 65 mA threshold at 15 &deg;C, 1.8 mW out, up to 40 &deg;C (as summarised in <a href="https://doi.org/10.1117/12.714274">Proc. SPIE 6485, 648515, 2007</a>)</td></tr>
+        <tr><td>Monolithic</td><td>III&ndash;V grown directly on silicon</td><td>Wafer-scale, no bonding</td><td>Lattice mismatch makes defects; quantum dots tolerate them better</td><td>Chen et al.'s InAs/GaAs quantum-dot laser on silicon (<a href="https://doi.org/10.1038/nphoton.2016.21">Nature Photon. 10, 307, 2016</a>): 62.5 A/cm<sup>2</sup> threshold, over 105 mW, operation to 120 &deg;C, and an <em>extrapolated</em> mean time to failure above 100,158 h from 3,100 h of ageing</td></tr>
+    </table>
+    </div>
+    <ul>
+        <li>The early results above show the direction rather than the state of the art; they are chosen because their numbers can be checked against the papers. Komljenovic et al.'s review covers the heterogeneous platform in depth (J. Lightwave Technol. 34(1), 20, 2016).</li>
+        <li>The choice is as much about <strong>where the heat and the failures go</strong> as about coupling loss: an integrated laser shares the chip's temperature, and a failed one takes the chip with it.</li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-03">
+    <div class="slide-number">03</div>
+    <h2>External Lasers and the ELSFP</h2>
+    <div class="canvas-wrap">
+        <svg viewBox="0 0 760 200" width="760" height="200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A switch or accelerator package with co-packaged optical engines around the ASIC; lasers sit in front-panel pluggable modules and feed light to the engines over fibre; data fibres leave the engines to the front panel">
+            <style>
+                .bx { fill: rgba(151,205,198,0.12); stroke: #97cdc6; }
+                .as { fill: rgba(170,189,89,0.18); stroke: #aabd59; }
+                .ls { fill: rgba(227,177,116,0.18); stroke: #e3b174; }
+                .fb { stroke: #e3b174; stroke-width: 2; fill: none; }
+                .df { stroke: #97cdc6; stroke-width: 2; fill: none; stroke-dasharray: 5 3; }
+                .t  { fill: #efe8dc; font-family: 'Geist Mono', monospace; font-size: 11px; }
+                .d  { fill: #a2978b; font-family: 'Geist Mono', monospace; font-size: 10px; }
+            </style>
+            <rect x="40" y="30" width="130" height="150" class="bx"/><text x="52" y="22" class="d">front panel</text>
+            <rect x="55" y="45" width="100" height="40" class="ls"/><text x="68" y="70" class="t">ELSFP laser</text>
+            <rect x="55" y="125" width="100" height="40" class="ls"/><text x="68" y="150" class="t">ELSFP laser</text>
+            <rect x="330" y="40" width="380" height="140" class="bx"/><text x="340" y="32" class="d">package substrate</text>
+            <rect x="460" y="80" width="120" height="60" class="as"/><text x="480" y="115" class="t">switch ASIC</text>
+            <rect x="380" y="90" width="60" height="40" class="bx"/><text x="386" y="114" class="d">optics</text>
+            <rect x="600" y="90" width="60" height="40" class="bx"/><text x="606" y="114" class="d">optics</text>
+            <path class="fb" d="M155 65 C250 65 300 100 380 100"/>
+            <path class="fb" d="M155 145 C350 190 600 190 630 130"/>
+            <path class="df" d="M380 120 C300 120 250 110 170 110"/>
+            <text x="190" y="62" class="d">laser light (fibre)</text><text x="190" y="128" class="d">data (fibre)</text>
+        </svg>
+    </div>
+    <ul>
+        <li><strong>Why move the laser out.</strong> In co-packaged optics the optical engines sit beside a high-power switch ASIC; lasers dislike heat, and are the part most likely to fail. A front-panel laser module keeps them cool and lets a failed one be swapped without opening the package.</li>
+        <li><strong>The OIF External Laser Small Form Factor Pluggable (ELSFP)</strong> implementation agreement, OIF-ELSFP-01.0 (August 2023), specifies such a module: a front-panel, hot-swappable laser source with a blind-mate multi-fibre optical connector at the rear for eye safety, and management over CMIS; a later revision, 02.0, followed (<a href="https://www.oiforum.com/technical-work/implementation-agreements-ias/">OIF implementation agreements</a>).</li>
+        <li><strong>The co-packaged module it feeds:</strong> OIF's 3.2T co-packaged module agreement specifies 8 &times; 400G (FR4 or DR4) optics behind a 32-lane CEI-112G-XSR host interface (<a href="https://www.oiforum.com/wp-content/uploads/OIF-Co-Packaging-3.2T-Module-01.0.pdf">OIF-Co-Packaging-3.2T-Module-01.0</a>).</li>
+        <li><strong>The price</strong> is an extra fibre-to-chip coupling for the laser light, and polarisation-maintaining fibre: decibels that appear in the budget of <a href="#slide-08">slide 08</a>. The data-centre series takes co-packaged optics further.</li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-04">
+    <div class="slide-number">04</div>
+    <h2>Wall-Plug Efficiency</h2>
+    <p><strong>Wall-plug efficiency</strong> (WPE) is optical power out over electrical power in. It converts every optical decibel in a link into electrical watts: the laser's electrical power is P<sub>optical</sub>/WPE, and each 3 dB of extra loss doubles it.</p>
+    <div class="table-wrap">
+    <table>
+        <tr><th>Figure</th><th>What it is</th><th>Source</th></tr>
+        <tr><td>Up to 13%</td><td>Measured WPE of a short-cavity III&ndash;V-on-silicon C-band DFB laser (200 &micro;m) at 20 &deg;C, coupling up to 2 &times; 6 mW into the silicon waveguide</td><td>Rahimi Vaskasi et al. (<a href="https://doi.org/10.1117/12.2607357">Proc. SPIE 12006, 120060H, 2022</a>)</td></tr>
+        <tr><td>35% &times; 41% = 14.35%</td><td>A DFB pump's WPE times a Kerr comb's conversion efficiency, <em>assumed</em> for a comb-driven transmitter</td><td>Rizzo et al. (<a href="https://arxiv.org/abs/2109.10297">arXiv:2109.10297</a>)</td></tr>
+    </table>
+    </div>
+    <ul>
+        <li>Laser makers advertise higher values for high-power CW DFB chips intended as co-packaged-optics sources; treat these as the vendors' claims until measured in a system.</li>
+        <li><strong>WPE falls with temperature</strong>, and drive and cooling electronics sit outside it: a thermo-electric cooler can cost more than the laser. The interactive on <a href="#slide-09">slide 09</a> lets you set WPE and see the laser's share of the energy per bit move.</li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-05">
+    <div class="slide-number">05</div>
+    <h2>Multi-Wavelength Sources</h2>
+    <p>A WDM link needs one carrier per wavelength. Three ways to provide them:</p>
+    <div class="diagram-grid cols-3">
+        <div class="diagram-panel accent-border">
+            <h4>Laser arrays</h4>
+            <p>One DFB per wavelength, each held on its grid slot by its own temperature or current. Simple and powerful, but the count of lasers, and of things that fail, grows with the channel count.</p>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Mode-locked comb lasers</h4>
+            <p>One laser emits many equally spaced lines. Liu et al.'s quantum-dot mode-locked laser grown on silicon gave 58 lines within 3 dB at 20 GHz spacing and carried 4.1 Tbit/s as 64 channels of 32 GBd PAM4, with an external optical amplifier (<a href="https://doi.org/10.1364/OPTICA.6.000128">Optica 6, 128, 2019</a>).</p>
+        </div>
+        <div class="diagram-panel accent-border">
+            <h4>Kerr microcombs</h4>
+            <p>A CW pump in a high-Q microresonator generates a comb by four-wave mixing. Rizzo et al. drove a silicon photonic link with one: 32 wavelengths at 16 Gb/s each, 512 Gb/s, with bit error ratios below 10<sup>&minus;12</sup> (<a href="https://doi.org/10.1038/s41566-023-01244-7">Nature Photon. 17, 781, 2023</a>).</p>
+        </div>
+    </div>
+    <ul>
+        <li><strong>The catch is per-line power.</strong> A comb shares its output between its lines, and the outer lines are weaker. The budget is set by the weakest line, not the average, so comb flatness becomes a loss term.</li>
+        <li>Ring-based WDM transmitters (<a href="https://brendanjameslynskey.github.io/OptSiP_02_Modulators_and_Detectors/#slide-06">deck 02</a>) pair naturally with combs: one bus, one comb, one ring per line.</li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-06">
+    <div class="slide-number">06</div>
+    <h2>Fibre Attach and Packaging</h2>
+    <div class="canvas-wrap">
+        <svg viewBox="0 0 760 210" width="760" height="210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A packaged photonic chip: an electronic chip flip-chip bonded onto the photonic chip, which sits on a substrate; a fibre array in a V-groove block is glued at the edge of the photonic chip; a heat path runs down into the substrate">
+            <style>
+                .pic { fill: rgba(151,205,198,0.18); stroke: #97cdc6; }
+                .eic { fill: rgba(170,189,89,0.18); stroke: #aabd59; }
+                .sub { fill: rgba(162,151,139,0.15); stroke: #a2978b; }
+                .fa  { fill: rgba(227,177,116,0.18); stroke: #e3b174; }
+                .bp  { fill: #a2978b; }
+                .t   { fill: #efe8dc; font-family: 'Geist Mono', monospace; font-size: 11px; }
+                .d   { fill: #a2978b; font-family: 'Geist Mono', monospace; font-size: 10px; }
+            </style>
+            <rect x="60" y="150" width="520" height="34" class="sub"/><text x="70" y="172" class="t">package substrate</text>
+            <rect x="140" y="110" width="360" height="40" class="pic"/><text x="150" y="134" class="t">photonic chip (PIC)</text>
+            <rect x="300" y="70" width="150" height="32" class="eic"/><text x="310" y="91" class="t">electronic chip</text>
+            <circle cx="320" cy="106" r="3" class="bp"/><circle cx="345" cy="106" r="3" class="bp"/><circle cx="370" cy="106" r="3" class="bp"/><circle cx="395" cy="106" r="3" class="bp"/><circle cx="420" cy="106" r="3" class="bp"/>
+            <rect x="500" y="100" width="160" height="34" class="fa"/><text x="515" y="122" class="t">fibre array</text>
+            <line x1="660" y1="110" x2="740" y2="100" stroke="#e3b174"/><line x1="660" y1="118" x2="740" y2="118" stroke="#e3b174"/><line x1="660" y1="126" x2="740" y2="136" stroke="#e3b174"/>
+            <text x="300" y="60" class="d">flip-chip bumps: short, low-capacitance links</text>
+            <text x="505" y="94" class="d">V-groove block, aligned &lt;1 &micro;m</text>
+            <text x="150" y="200" class="d">heat from both chips leaves through the substrate</text>
+        </svg>
+    </div>
+    <ul>
+        <li><strong>Alignment is the cost.</strong> A single-mode fibre has to sit on a coupler to a fraction of a micrometre, and stay there through curing, temperature cycles and years. Arrays of fibres in a V-groove block are aligned together, often actively (with light on) and then fixed with adhesive.</li>
+        <li><strong>The coupler decides the package:</strong> grating couplers take fibres from above, anywhere on the die, and allow wafer-level test; edge couplers need the fibre at a prepared facet but give lower loss and broader bandwidth (<a href="https://brendanjameslynskey.github.io/OptSiP_01_Waveguides_and_WDM/#slide-06">deck 01, slide 06</a>).</li>
+        <li><strong>Polarisation and lasers</strong> add their own requirements: polarisation-maintaining fibre for the laser input, isolation against reflections, and a thermal path that keeps rings and lasers stable.</li>
+        <li>Carroll et al. describe photonic packaging as orders of magnitude more expensive than electronic packaging and perhaps the most significant bottleneck to silicon photonics in volume (<a href="https://doi.org/10.3390/app6120426">Appl. Sci. 6, 426, 2016</a>).</li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-07">
+    <div class="slide-number">07</div>
+    <h2>Putting Electronics Next to Photonics</h2>
+    <div class="table-wrap">
+    <table>
+        <tr><th>Integration</th><th>How</th><th>Example</th></tr>
+        <tr><td>Monolithic, &ldquo;zero-change&rdquo;</td><td>Photonic devices drawn in an unmodified CMOS SOI process, beside the transistors</td><td>Sun et al.: a microprocessor with more than 70 million transistors and 850 photonic components on one 45 nm SOI CMOS chip, communicating directly by light (<a href="https://doi.org/10.1038/nature16454">Nature 528, 534, 2015</a>); Stojanovi&#263; et al. on 45 nm and 32 nm SOI platforms (<a href="https://doi.org/10.1364/OE.26.013106">Opt. Express 26, 13106, 2018</a>)</td></tr>
+        <tr><td>Monolithic, photonics-enabled CMOS</td><td>A CMOS process modified to include optimised photonic layers</td><td>GlobalFoundries' 45 nm 45CLO platform, Rakowski et al. (OFC 2020, paper T3H.3)</td></tr>
+        <tr><td>3-D</td><td>A separate electronic chip bonded face-to-face onto the photonic chip, with dense short connections</td><td>Daudlin et al.: 80 channels at 10 Gb/s, 800 Gb/s, at 120 fJ/bit (<a href="https://arxiv.org/abs/2310.01615">arXiv:2310.01615</a>; Nature Photonics, 2025)</td></tr>
+        <tr><td>2.5-D and side by side</td><td>Electronic and photonic chips on an interposer or substrate, or wire-bonded</td><td>Common in pluggable modules and co-packaged engines</td></tr>
+    </table>
+    </div>
+    <ul>
+        <li><strong>Why distance costs energy.</strong> Every millimetre of wire between driver and modulator, or between photodiode and amplifier, adds capacitance; a capacitive load costs about &frac14;CV<sup>2</sup> per bit (<a href="https://brendanjameslynskey.github.io/OptSiP_02_Modulators_and_Detectors/#slide-05">deck 02, slide 05</a>), and detector capacitance sets receiver noise (<a href="https://brendanjameslynskey.github.io/OptSiP_02_Modulators_and_Detectors/#slide-12">deck 02, slide 12</a>). Flip-chip and 3-D bonds keep these femtofarads small.</li>
+        <li><strong>Monolithic</strong> removes the interface entirely but takes the photonics in a transistor-optimised process, or the transistors in a photonics-optimised one; <strong>3-D</strong> lets each chip use its own best process.</li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-08">
+    <div class="slide-number">08</div>
+    <h2>The Optical Link Budget</h2>
+    <div class="diagram-flow">
+        <span class="diagram-box accent">laser power</span><span class="diagram-arrow">&minus;</span>
+        <span class="diagram-box">laser-to-chip coupling</span><span class="diagram-arrow">&minus;</span>
+        <span class="diagram-box">modulator loss</span><span class="diagram-arrow">&minus;</span>
+        <span class="diagram-box">mux</span><span class="diagram-arrow">&minus;</span>
+        <span class="diagram-box">chip-to-fibre</span><span class="diagram-arrow">&minus;</span>
+        <span class="diagram-box">fibre + connectors</span><span class="diagram-arrow">&minus;</span>
+        <span class="diagram-box">fibre-to-chip</span><span class="diagram-arrow">&minus;</span>
+        <span class="diagram-box">demux</span><span class="diagram-arrow">&ge;</span>
+        <span class="diagram-box accent">sensitivity + margin</span>
+    </div>
+    <ul>
+        <li><strong>Work backwards from the receiver.</strong> Its sensitivity is an OMA (<a href="https://brendanjameslynskey.github.io/OptSiP_02_Modulators_and_Detectors/#slide-12">deck 02, slide 12</a>). With extinction ratio r = P<sub>1</sub>/P<sub>0</sub>, the average power that delivers a given OMA is P<sub>avg</sub> = OMA&middot;(r + 1)/(2(r &minus; 1)): a modest extinction ratio needs well over the OMA in average power.</li>
+        <li><strong>Add every loss in dB</strong> to get the laser power; divide by the wall-plug efficiency to get electrical power. Fibre is the smallest term in a data centre: SMF-28 Ultra is specified at no more than 0.32 dB/km at 1310 nm and 0.18 dB/km at 1550 nm (<a href="https://csmedia.corning.com/media/worldwide/coc/documents/Fiber/product-information-sheets/PI-1424-AEN.pdf">Corning PI-1424</a>).</li>
+        <li><strong>PAM4</strong> raises the required OMA by about 4.8 dB at the same noise (<a href="https://brendanjameslynskey.github.io/OptSiP_02_Modulators_and_Detectors/#slide-01">deck 02, slide 01</a>); a shared laser split N ways costs 10&middot;log<sub>10</sub>N dB per branch.</li>
+        <li><strong>Margin</strong> covers ageing, temperature and manufacturing spread; standards write their budgets the same way, from transmitter and receiver specifications plus a channel allocation.</li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-09">
+    <div class="slide-number">09</div>
+    <h2>Interactive: Link Budget and Energy per Bit</h2>
+    <p>A link computed from laser to detector and priced per bit. <strong>Every default here is illustrative</strong>, chosen to look like the two kinds of link described in this series, not taken from any product; change them to match a datasheet. Fibre couplers means chip-to-fibre and fibre-to-chip together; the laser can be one per lane or one source split (or a comb shared) across all lanes; SerDes + DSP covers serialisers, clocking and any DSP. Fibre attenuation is Corning's 0.32 dB/km at 1310 nm, PAM4 adds 10&middot;log<sub>10</sub>3 dB to the required OMA, and the slide 08 relation converts OMA to average power.</p>
+    <div class="control-panel">
+        <div style="margin-bottom:0.6rem; display:flex; flex-wrap:wrap; gap:0.5rem;">
+            <button class="btn" id="lb-p1">Preset: parallel-fibre PAM4 lanes</button>
+            <button class="btn" id="lb-p2">Preset: dense WDM, ring modulators, shared source</button>
+        </div>
+        <div class="sim-grid">
+            <div class="control-row"><label for="lb-n">Lanes</label><input type="range" id="lb-n" min="1" max="64" step="1" value="4"><span class="val" id="lb-n-val">4</span></div>
+            <div class="control-row"><label for="lb-rate">Rate per lane (Gb/s)</label><input type="range" id="lb-rate" min="10" max="200" step="1" value="100"><span class="val" id="lb-rate-val">100</span></div>
+            <div class="control-row"><label for="lb-fmt">Format</label><select id="lb-fmt"><option value="nrz">NRZ</option><option value="pam4" selected>PAM4</option></select></div>
+            <div class="control-row"><label for="lb-src">Laser</label><select id="lb-src"><option value="each" selected>one per lane</option><option value="split">one shared source</option></select></div>
+            <div class="control-row"><label for="lb-sens">NRZ sensitivity (OMA dBm)</label><input type="range" id="lb-sens" min="-20" max="0" step="0.5" value="-10"><span class="val" id="lb-sens-val">-10.0</span></div>
+            <div class="control-row"><label for="lb-er">Extinction ratio (dB)</label><input type="range" id="lb-er" min="2" max="12" step="0.5" value="5"><span class="val" id="lb-er-val">5.0</span></div>
+            <div class="control-row"><label for="lb-lc">Laser to chip (dB)</label><input type="range" id="lb-lc" min="0" max="6" step="0.1" value="1.5"><span class="val" id="lb-lc-val">1.5</span></div>
+            <div class="control-row"><label for="lb-mod">Modulator loss (dB)</label><input type="range" id="lb-mod" min="0" max="10" step="0.1" value="4"><span class="val" id="lb-mod-val">4.0</span></div>
+            <div class="control-row"><label for="lb-mux">Mux + demux (dB)</label><input type="range" id="lb-mux" min="0" max="8" step="0.1" value="0"><span class="val" id="lb-mux-val">0.0</span></div>
+            <div class="control-row"><label for="lb-fc">Fibre couplers (dB)</label><input type="range" id="lb-fc" min="0" max="10" step="0.1" value="3"><span class="val" id="lb-fc-val">3.0</span></div>
+            <div class="control-row"><label for="lb-km">Fibre (km)</label><input type="range" id="lb-km" min="0" max="10" step="0.1" value="0.5"><span class="val" id="lb-km-val">0.5</span></div>
+            <div class="control-row"><label for="lb-mg">Connectors + margin (dB)</label><input type="range" id="lb-mg" min="0" max="8" step="0.5" value="3"><span class="val" id="lb-mg-val">3.0</span></div>
+            <div class="control-row"><label for="lb-wpe">Laser WPE (%)</label><input type="range" id="lb-wpe" min="2" max="40" step="1" value="15"><span class="val" id="lb-wpe-val">15</span></div>
+            <div class="control-row"><label for="lb-drv">Driver (pJ/bit)</label><input type="range" id="lb-drv" min="0" max="5" step="0.05" value="1"><span class="val" id="lb-drv-val">1.00</span></div>
+            <div class="control-row"><label for="lb-rx">Receiver (pJ/bit)</label><input type="range" id="lb-rx" min="0" max="5" step="0.05" value="1"><span class="val" id="lb-rx-val">1.00</span></div>
+            <div class="control-row"><label for="lb-ser">SerDes + DSP (pJ/bit)</label><input type="range" id="lb-ser" min="0" max="10" step="0.1" value="3"><span class="val" id="lb-ser-val">3.0</span></div>
+            <div class="control-row"><label for="lb-rings">Tuned rings per lane</label><input type="range" id="lb-rings" min="0" max="4" step="1" value="0"><span class="val" id="lb-rings-val">0</span></div>
+            <div class="control-row"><label for="lb-heat">Heater per ring (mW)</label><input type="range" id="lb-heat" min="0" max="20" step="0.5" value="2"><span class="val" id="lb-heat-val">2.0</span></div>
+        </div>
+        <div class="metric-grid">
+            <div class="metric"><div class="metric-label">Aggregate rate</div><div class="metric-value" id="lb-agg">&mdash;</div></div>
+            <div class="metric"><div class="metric-label">Total optical loss</div><div class="metric-value" id="lb-loss">&mdash;</div></div>
+            <div class="metric"><div class="metric-label">Laser output per lane</div><div class="metric-value" id="lb-plas">&mdash;</div></div>
+            <div class="metric"><div class="metric-label">Total link power</div><div class="metric-value" id="lb-pw">&mdash;</div></div>
+            <div class="metric"><div class="metric-label">Energy per bit</div><div class="metric-value" id="lb-pj">&mdash;</div></div>
+        </div>
+        <div class="stack-wrap" id="lb-bars" style="margin-top:0.9rem;"></div>
+        <p id="lb-note" style="font-size:0.85rem; margin-top:0.6rem;"></p>
+    </div>
+    <p style="font-size:0.85rem;">Limits: one direction of one link; no FEC overhead; laser power is the average power needed at the receiver multiplied up by the losses, ignoring the modulator's extra penalty at its operating point (set a lower extinction ratio to include it) and the weakest-line penalty of a comb. Electronics energies are lumped per bit. A link described in a paper or a datasheet may include a different set of these terms (<a href="#slide-10">slide 10</a>).</p>
+        <style>@media (max-width: 640px) { .sim-grid .control-row label { min-width: 0; flex-basis: 100%; } .sim-grid .control-row input[type="range"] { min-width: 0; } }</style>
+    <script>
+    (function(){
+        const $ = id => document.getElementById(id);
+        const ids = ['lb-n', 'lb-rate', 'lb-sens', 'lb-er', 'lb-lc', 'lb-mod', 'lb-mux', 'lb-fc', 'lb-km', 'lb-mg', 'lb-wpe', 'lb-drv', 'lb-rx', 'lb-ser', 'lb-rings', 'lb-heat'];
+        const dec = { 'lb-sens': 1, 'lb-er': 1, 'lb-lc': 1, 'lb-mod': 1, 'lb-mux': 1, 'lb-fc': 1, 'lb-km': 1, 'lb-mg': 1, 'lb-drv': 2, 'lb-rx': 2, 'lb-ser': 1, 'lb-heat': 1 };
+        const FIBRE_DB_PER_KM = 0.32;          // SMF-28 Ultra maximum at 1310 nm (Corning PI-1424)
+        const PRESETS = {
+            'lb-p1': { 'lb-n': 4, 'lb-rate': 100, 'lb-fmt': 'pam4', 'lb-src': 'each', 'lb-sens': -10, 'lb-er': 5, 'lb-lc': 1.5, 'lb-mod': 4, 'lb-mux': 0, 'lb-fc': 3, 'lb-km': 0.5, 'lb-mg': 3, 'lb-wpe': 15, 'lb-drv': 1, 'lb-rx': 1, 'lb-ser': 3, 'lb-rings': 0, 'lb-heat': 2 },
+            'lb-p2': { 'lb-n': 16, 'lb-rate': 32, 'lb-fmt': 'nrz', 'lb-src': 'split', 'lb-sens': -15, 'lb-er': 5, 'lb-lc': 2, 'lb-mod': 3, 'lb-mux': 2, 'lb-fc': 3, 'lb-km': 0.1, 'lb-mg': 2, 'lb-wpe': 15, 'lb-drv': 0.1, 'lb-rx': 0.3, 'lb-ser': 0.3, 'lb-rings': 2, 'lb-heat': 2 },
+        };
+        const COLS = { laser: '#e3b174', driver: '#aabd59', receiver: '#97cdc6', serdes: '#8a8078', tuning: '#de805a' };
+        const g = id => +$(id).value;
+        const dBm = mw => 10 * Math.log10(mw);
+        function compute() {
+            const n = g('lb-n'), rate = g('lb-rate'), pam4 = $('lb-fmt').value === 'pam4', split = $('lb-src').value === 'split';
+            const omaReq = Math.pow(10, (g('lb-sens') + (pam4 ? 10 * Math.log10(3) : 0)) / 10);   // mW
+            const r = Math.pow(10, g('lb-er') / 10), pavg = omaReq * (r + 1) / (2 * (r - 1));     // mW average at the receiver
+            const fibre = FIBRE_DB_PER_KM * g('lb-km'), splitDb = split ? 10 * Math.log10(n) : 0;
+            const loss = g('lb-lc') + g('lb-mod') + g('lb-mux') + g('lb-fc') + fibre + g('lb-mg') + splitDb;
+            const perLane = pavg * Math.pow(10, loss / 10);            // mW of laser light per lane (its share of a shared source)
+            const laserOpt = perLane * n, laserEl = laserOpt / (g('lb-wpe') / 100);   // mW
+            const agg = n * rate;                                      // Gb/s
+            const pj = { laser: laserEl / agg, driver: g('lb-drv'), receiver: g('lb-rx'), serdes: g('lb-ser'), tuning: g('lb-rings') * g('lb-heat') / rate };
+            const tot = Object.values(pj).reduce((a, b) => a + b, 0);
+            return { n, rate, pam4, split, omaReq, pavg, fibre, splitDb, loss, perLane, laserOpt, laserEl, agg, pj, tot, power: tot * agg };   // power in mW
+        }
+        const fmtE = v => v >= 1 ? v.toFixed(2) + ' pJ/bit' : (v * 1000).toFixed(0) + ' fJ/bit';
+        function rec() {
+            ids.forEach(id => $(id + '-val').textContent = (+$(id).value).toFixed(dec[id] || 0));
+            const s = compute();
+            $('lb-agg').textContent = s.agg >= 1000 ? (s.agg / 1000).toFixed(2) + ' Tb/s' : s.agg.toFixed(0) + ' Gb/s';
+            $('lb-loss').textContent = s.loss.toFixed(1) + ' dB';
+            $('lb-plas').textContent = dBm(s.perLane).toFixed(1) + ' dBm';
+            $('lb-pw').textContent = s.power >= 1000 ? (s.power / 1000).toFixed(2) + ' W' : s.power.toFixed(0) + ' mW';
+            $('lb-pj').textContent = fmtE(s.tot);
+            const keys = Object.keys(s.pj);
+            $('lb-bars').innerHTML =
+                '<div style="display:flex; height:28px; gap:2px; border-radius:4px; overflow:hidden;">' +
+                keys.map(k => '<span title="' + k + '" style="display:block; min-width:0; background:' + COLS[k] + '; flex:' + Math.max(s.pj[k], 0) + ' 1 0;"></span>').join('') + '</div>' +
+                '<div style="display:flex; flex-wrap:wrap; gap:0.3rem 1rem; margin-top:0.5rem; font-family: var(--font-mono); font-size:0.75rem; color: var(--text-secondary);">' +
+                keys.map(k => '<span><i style="display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:0.35rem; background:' + COLS[k] + ';"></i>' + k + ' ' + fmtE(s.pj[k]) + ' (' + (100 * s.pj[k] / s.tot).toFixed(0) + '%)</span>').join('') + '</div>';
+            const big = keys.reduce((a, b) => s.pj[a] > s.pj[b] ? a : b);
+            $('lb-note').innerHTML = 'Required OMA ' + dBm(s.omaReq).toFixed(1) + ' dBm' + (s.pam4 ? ' (NRZ sensitivity + 4.8 dB for PAM4)' : '') +
+                ', so ' + dBm(s.pavg).toFixed(1) + ' dBm average at the receiver; ' + s.loss.toFixed(1) + ' dB of loss' +
+                (s.split ? ' (including ' + s.splitDb.toFixed(1) + ' dB for splitting one source ' + s.n + ' ways)' : '') +
+                ' puts ' + dBm(s.perLane).toFixed(1) + ' dBm of laser light behind each lane: ' + s.laserOpt.toFixed(1) + ' mW optical, ' + s.laserEl.toFixed(0) + ' mW electrical in total. ' +
+                'The largest term is <strong>' + big + '</strong>.' + (s.perLane > 100 ? ' <strong>Over 100 mW of laser light per lane:</strong> reduce the losses or improve the receiver.' : '');
+            window.lbState = { agg: s.agg, loss: s.loss, perLaneDbm: dBm(s.perLane), laserEl: s.laserEl, pj: s.pj, tot: s.tot, power: s.power };
+        }
+        function preset(p) { for (const [k, v] of Object.entries(PRESETS[p])) $(k).value = v; rec(); }
+        Object.keys(PRESETS).forEach(p => $(p).addEventListener('click', () => preset(p)));
+        ['lb-fmt', 'lb-src'].concat(ids).forEach(id => $(id).addEventListener('input', rec));
+        window.lbDemo = { set(o) { for (const [k, v] of Object.entries(o)) $(k).value = v; rec(); return window.lbState; }, preset(p) { preset(p); return window.lbState; } };
+        rec();
+    })();
+    </script>
+</section>
+
+<section class="slide" id="slide-10">
+    <div class="slide-number">10</div>
+    <h2>What Published Links Report</h2>
+    <p>Energy-per-bit figures are easy to quote and hard to compare: each counts a different set of terms. Read what is included before reading the number.</p>
+    <div class="table-wrap">
+    <table>
+        <tr><th>Result</th><th>Energy</th><th>What it covers</th><th>Source</th></tr>
+        <tr><td>3-D integrated link, 80 &times; 10 Gb/s</td><td>120 fJ/bit</td><td>The authors' headline figure for the whole 3-D bonded link; see the paper for what it includes</td><td>Daudlin et al. (<a href="https://arxiv.org/abs/2310.01615">arXiv:2310.01615</a>)</td></tr>
+        <tr><td>100 Gb/s OOK transmitter</td><td>2.03 pJ/bit</td><td>The 28 nm CMOS driver alone</td><td>Li et al. (<a href="https://doi.org/10.1364/OPTICA.411122">Optica 7, 1514, 2020</a>)</td></tr>
+        <tr><td>Ring modulator</td><td>0.9 fJ/bit</td><td>The modulator's switching energy at 25 Gb/s, 0.5 V<sub>pp</sub></td><td>Timurdogan et al. (<a href="https://doi.org/10.1038/ncomms5008">Nature Commun. 5, 4008, 2014</a>)</td></tr>
+        <tr><td>GeSi electro-absorption modulator</td><td>12.8 fJ/bit plus about 1.2 mW static</td><td>The modulator at 56 Gb/s</td><td>Srinivasan et al. (<a href="https://ieeexplore.ieee.org/document/7264980">J. Lightwave Technol. 34, 419, 2016</a>)</td></tr>
+        <tr><td>Photonic link module (QSFP56)</td><td>2.76 pJ/bit</td><td>The module developer's estimate for its 45 nm silicon photonics, excluding the laser</td><td>As summarised in <a href="https://brendanjameslynskey.github.io/LLM_Hub_Compute_in_Transit/#g-pjbit">Compute in Transit's glossary</a> (arXiv:2608.21536)</td></tr>
+        <tr><td>Device target</td><td>About 10 fJ/bit</td><td>Miller's target for the optical output device in optical interconnects to chips</td><td>Miller (<a href="https://doi.org/10.1109/JPROC.2009.2014298">Proc. IEEE 97, 1166, 2009</a>)</td></tr>
+    </table>
+    </div>
+    <ul>
+        <li>Modulators alone reach femtojoules; drivers, receivers, clocking, lasers and tuning bring whole links to tens or hundreds of femtojoules at best, and to picojoules where DSP and retimers are counted.</li>
+        <li>The interactive's presets show the same spread: where the laser, the tuning or the electronics dominate depends on the architecture more than on the modulator.</li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-11">
+    <div class="slide-number">11</div>
+    <h2>Thermal Tuning in the Budget</h2>
+    <p>Rings must be held on their wavelengths (<a href="https://brendanjameslynskey.github.io/OptSiP_02_Modulators_and_Detectors/#slide-08">deck 02, slide 08</a>), and heaters draw power whether or not data flows. Per bit, a heater costs its power divided by the lane's data rate.</p>
+    <div class="table-wrap"><table>
+        <tr><th>Heater power per ring</th><th>At 10 Gb/s</th><th>At 25 Gb/s</th><th>At 50 Gb/s</th></tr>
+        <tr><td>0.5 mW</td><td>50 fJ/bit</td><td>20 fJ/bit</td><td>10 fJ/bit</td></tr>
+        <tr><td>2 mW</td><td>200 fJ/bit</td><td>80 fJ/bit</td><td>40 fJ/bit</td></tr>
+        <tr><td>5 mW</td><td>500 fJ/bit</td><td>200 fJ/bit</td><td>100 fJ/bit</td></tr>
+    </table></div>
+    <p class="src">Arithmetic: mW &divide; Gb/s = pJ/bit. Heater powers are illustrative; measured heaters need 12.7&ndash;24.77 mW for a full &pi; (deck 02, slide 08), and a ring needs a fraction of that depending on its offset.</p>
+    <ul>
+        <li><strong>Tuning can exceed modulation by orders of magnitude.</strong> A 0.9 fJ/bit ring modulator (Timurdogan et al.) beside a 2 mW heater at 25 Gb/s spends nearly a hundred times more on staying tuned than on modulating.</li>
+        <li>Rizzo et al.'s design estimates for a comb-driven ring transmitter make the same point: about 173 fJ/bit for ring tuning against 12.5 fJ/bit for modulation, with about 180 fJ/bit for the receiver (<a href="https://arxiv.org/abs/2109.10297">arXiv:2109.10297</a>; estimates, not measurements).</li>
+        <li><strong>Remedies:</strong> faster lanes (the same heater over more bits), wider FSRs so offsets are smaller, better process control, athermal designs, thermal isolation that raises heater efficiency, and sharing heat between neighbouring rings.</li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-12">
+    <div class="slide-number">12</div>
+    <h2>How Bandwidth Scales</h2>
+    <p style="text-align:center; font-family: var(--font-mono);">bandwidth = fibres &times; wavelengths per fibre &times; bits per symbol &times; symbol rate</p>
+    <div class="table-wrap">
+    <table>
+        <tr><th>Example</th><th>Fibres</th><th>Wavelengths</th><th>Bits/symbol</th><th>Symbol rate</th><th>Source</th></tr>
+        <tr><td>400GBASE-DR4</td><td>4 (each way)</td><td>1</td><td>2 (PAM4)</td><td>53.125 GBd</td><td><a href="https://www.ieee802.org/3/bs/">IEEE 802.3bs</a></td></tr>
+        <tr><td>400GBASE-FR8 / LR8</td><td>1 (each way)</td><td>8</td><td>2 (PAM4)</td><td>50 Gb/s per wavelength</td><td><a href="https://www.ieee802.org/3/bs/">IEEE 802.3bs</a></td></tr>
+        <tr><td>200 Gb/s per lane Ethernet</td><td colspan="4">200 Gb/s per lane for 800 Gb/s and 1.6 Tb/s Ethernet; a draft standard in ballot at the time of writing</td><td><a href="https://www.ieee802.org/3/dj/">IEEE P802.3dj</a></td></tr>
+        <tr><td>Kerr-comb link</td><td>1</td><td>32</td><td>1 (NRZ)</td><td>16 Gb/s</td><td>Rizzo et al. 2023 (<a href="#slide-05">slide 05</a>)</td></tr>
+        <tr><td>3-D integrated link</td><td colspan="4">80 channels at 10 Gb/s</td><td>Daudlin et al. (<a href="#slide-07">slide 07</a>)</td></tr>
+    </table>
+    </div>
+    <ul>
+        <li><strong>Each axis has its own price.</strong> More fibres cost packaging and connectors (<a href="#slide-06">slide 06</a>); more wavelengths cost lasers or combs, multiplexers and tuning (<a href="#slide-05">slide 05</a>, <a href="#slide-11">slide 11</a>); more bits per symbol cost sensitivity (PAM4's 4.8 dB); a faster symbol rate costs modulator bandwidth, electronics and DSP.</li>
+        <li>Pluggable Ethernet optics have mostly scaled symbol rate and bits per symbol on a few fibres or wavelengths; dense optical I/O proposals scale wavelengths, at modest rates per wavelength, to keep electronics simple and energy low.</li>
+        <li><strong>Where this goes next:</strong> the <a href="https://github.com/BrendanJamesLynskey/Optical_Hub_Data_Centres">data-centre series</a> applies these devices to pluggables and linear-drive optics, co-packaged optics, optical circuit switching and AI cluster networks; the <a href="https://github.com/BrendanJamesLynskey/Optical_Hub_AI_Processing">AI-processing series</a> to computing with light.</li>
+    </ul>
+</section>
+
+<section class="slide" id="slide-13">
+    <div class="slide-number">13</div>
+    <h2>What to Take Away</h2>
+    <ul>
+        <li><strong>Silicon borrows its laser.</strong> External, attached, heterogeneous or monolithic: the choice is about heat, reliability and replaceability as much as coupling loss. Co-packaged optics leans towards external front-panel sources (OIF ELSFP).</li>
+        <li><strong>Every decibel is paid at the wall,</strong> divided by a wall-plug efficiency of about 13% in the measurement and 14% in the comb analysis cited here; vendors claim higher.</li>
+        <li><strong>Packaging</strong>, aligning fibres to sub-micrometre tolerance and keeping them there, is a large share of the cost.</li>
+        <li><strong>Energy per bit</strong> is laser, driver, receiver, clocking and tuning: modulators reach femtojoules, whole links tens of femtojoules to picojoules. Always ask what a figure includes (<a href="#slide-10">slide 10</a>; the interactive, <a href="#slide-09">slide 09</a>).</li>
+        <li><strong>Tuning can dominate</strong> a ring-based link; faster lanes and better process control are the main levers.</li>
+        <li><strong>Next:</strong> this is the end of the foundation series. The <a href="https://github.com/BrendanJamesLynskey/Optical_Hub_Data_Centres">data-centre series</a> builds on it; the <a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#glossary">glossary</a> is the reference both later series link to.</li>
+    </ul>
+</section>
+
+<!-- ════════════════════════════════════ Footer ════════════════════════════════════ -->
+<footer class="footer">
+    <p>Part of the <a href="https://github.com/BrendanJamesLynskey/Optical_Hub_Silicon_Photonics">Silicon Photonics Fundamentals series</a> &middot; <a href="https://brendanjameslynskey.github.io/Optical_Hub_Silicon_Photonics/#glossary">glossary: every concept and where it is explained</a> &middot; numbers: cited on each slide or computed live in the interactive</p>
+    <p style="margin-top: 0.5rem; font-size: 0.8rem;"><a href="https://brendanjameslynskey.github.io/OptSiP_02_Modulators_and_Detectors/">&larr; 02 Modulators and Detectors</a></p>
+    <p style="margin-top: 0.5rem; font-size: 0.8rem;">Sister series: <a href="https://github.com/BrendanJamesLynskey/Optical_Hub_Data_Centres">Optical Technology for Data Centres</a> (planned) &middot; <a href="https://github.com/BrendanJamesLynskey/Optical_Hub_AI_Processing">Optical Technology for AI Processing</a> (planned) &middot; <a href="https://brendanjameslynskey.github.io/LLM_Hub_Fourier_Optics_Inference/">Fourier Optics for Inference</a> &middot; <a href="https://brendanjameslynskey.github.io/LLM_Hub_Fourier_Optics_Training/">Fourier Optics for Training</a> &middot; <a href="https://brendanjameslynskey.github.io/LLM_Hub_Compute_in_Transit/">Compute in Transit</a></p>
+</footer>
+
+<script>
+    // Smooth scroll for TOC links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+
+    // Subtle fade-in on scroll
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.slide').forEach(slide => {
+        slide.style.opacity = '0';
+        slide.style.transform = 'translateY(30px)';
+        slide.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(slide);
+    });
+</script>
+
+</body>
+</html>
